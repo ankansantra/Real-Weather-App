@@ -3,7 +3,7 @@ const cityInput = document.querySelector('.city-input');
 const weatherCardsDiv = document.querySelector(".weather-cards");
 const currentWeatherDiv = document.querySelector(".current-weather");
 const locationButton = document.querySelector('.location-btn');
-
+const recentCitiesDropdown = document.querySelector('.recent-cities-dropdown');
 
 const API_KEY = "75409518018edef1d6d9a8c3190b82af";
 
@@ -81,11 +81,15 @@ const getCityLocation = () => {
     if(!data.length) return alert(`No Coordinates found for ${cityName}`);
     const {name, lat, lon} = data[0];
     getWeatherDetails(name,lat,lon);
+    addToRecentCities(name);
+
    }).catch(() => {
     alert("An Error Occured While Fetching Geocodind Api")
    });
 }
 
+
+// Function to fetch weather details from API based on user's current location
 const getUserLocation = () => {
     navigator.geolocation.getCurrentPosition(position => {
         const {latitude, longitude} = position.coords;
@@ -95,6 +99,8 @@ const getUserLocation = () => {
         fetch(REVERSE_GEOCODING_URL).then(res => res.json()).then(data => {
             const {name} = data[0];
             getWeatherDetails(name,latitude,longitude);
+            addToRecentCities(name);
+
            }).catch(() => {
             alert("An Error Occured While Fetching the City")
            });
@@ -106,6 +112,59 @@ const getUserLocation = () => {
 
     })
 }
+
+const populateRecentCitiesDropdown = () => {
+    const recentCities = getRecentCities();
+    recentCitiesDropdown.innerHTML = '<option selected disabled>Select a city</option>';
+    recentCities.forEach(city => {
+        const option = document.createElement('option');
+        option.textContent = city;
+        recentCitiesDropdown.appendChild(option);
+    });
+}
+
+// Function to add a city to recent cities in local storage
+const addToRecentCities = (cityName) => {
+    let recentCities = getRecentCities();
+    recentCities = recentCities.filter(city => city !== cityName); // Remove duplicate
+    recentCities.unshift(cityName); // Add to the beginning
+    if (recentCities.length > 5) {
+        recentCities.pop(); // Limit recent cities to 5
+    }
+    localStorage.setItem('recentCities', JSON.stringify(recentCities));
+    populateRecentCitiesDropdown();
+}
+
+// Function to get recent cities from local storage
+const getRecentCities = () => {
+    return JSON.parse(localStorage.getItem('recentCities')) || [];
+}
+
+// Function to handle dropdown change
+const handleDropdownChange = () => {
+    const selectedCity = recentCitiesDropdown.value;
+    if (selectedCity !== 'Select a city') {
+        const GEOCODING_API_URL = `http://api.openweathermap.org/geo/1.0/direct?q=${selectedCity}&limit=5&appid=${API_KEY}`;
+        
+        fetch(GEOCODING_API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.length) {
+                return alert(`No Coordinates found for ${selectedCity}`);
+            }
+            const { name, lat, lon } = data[0];
+            getWeatherDetails(name, lat, lon);
+        })
+        .catch(() => {
+            alert("An Error Occurred While Fetching Geocoding API");
+        });
+    }
+}
+
+recentCitiesDropdown.addEventListener('change', handleDropdownChange);
+
+
+
 searchButton.addEventListener("click", getCityLocation);
 locationButton.addEventListener("click", getUserLocation);
 cityInput.addEventListener("keyup", event => event.key === "Enter" && getCityLocation());
