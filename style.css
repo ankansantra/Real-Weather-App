@@ -109,6 +109,10 @@ h1 {
     text-transform: capitalize;
 }
 
+.current-weather .icon {
+    text-align: center;
+}
+
 .days-forecast h2 {
     font-size: 1.5rem;
     margin: 20px 0;
@@ -181,5 +185,6 @@ h1 {
 
     .weather-data h2 {
         font-size: 1.35rem;
+        text-align: center;
     }
 }
