@@ -73,7 +73,10 @@ const getWeatherDetails = (cityName, lat, lon) => {
 }
 const getCityLocation = () => {
    const cityName = cityInput.value.trim(); //get city name and removes white spaces
-   if(!cityName) return;
+   if(!cityName){
+    alert("Please enter a city name.");
+    return;
+   }
    const GEOCODING_API_URL = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${API_KEY}`;
     
    //fetching coordinates
